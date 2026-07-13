@@ -1,8 +1,12 @@
-﻿namespace Shop.DAL.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Shop.DAL.Models
 {
-    public class ApplicationUser
+    public class ApplicationUser : IdentityUser
     {
-        public string Name { get; set; }
+        //add props
+        //add methods
+        public string FullName { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
     }

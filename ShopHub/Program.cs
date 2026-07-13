@@ -1,5 +1,9 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Shop.DAL.DB;
+using Shop.DAL.Models;
+using Shop.DAL.Repository.Abstraction;
+using Shop.DAL.Repository.Impelementation;
 
 namespace ShopHub
 {
@@ -16,6 +20,11 @@ namespace ShopHub
               option.UseSqlServer(builder.Configuration.GetConnectionString("ShopConnectionDB"))
 
             );
+            //DI
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            //Identity
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>() //UserManager,RoleManager
+                .AddEntityFrameworkStores<ShopDbContext>();
 
             var app = builder.Build();
 
@@ -32,6 +41,7 @@ namespace ShopHub
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
