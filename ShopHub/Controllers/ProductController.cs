@@ -1,26 +1,33 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Shop.BAL.ModelVM;
 using Shop.DAL.DB;
 using Shop.DAL.Models;
+using Shop.DAL.Repository.Abstraction;
 
 namespace ShopHub.MVC.Controllers
 {
     public class ProductController : Controller
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ShopDbContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(ShopDbContext db, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IUnitOfWork unitOfWork, ShopDbContext db, IWebHostEnvironment webHostEnvironment)
         {
+            _unitOfWork = unitOfWork;
             _db = db;
             _webHostEnvironment = webHostEnvironment;
         }
 
+        [Authorize]
         public IActionResult Index()
         {
-            return View();
+            var productList = _db.Products.Include(p => p.Category).ToList();
+
+            return View(productList);
         }
 
         [HttpGet]
@@ -92,7 +99,7 @@ namespace ShopHub.MVC.Controllers
 
             ProductVM productVM = new ProductVM()
             {
-                Product = _db.Products.FirstOrDefault(x => x.Id == id),
+                Product = _unitOfWork.ProductRepo.Get(x => x.Id == id),
                 CategoryList = _db.Categories.Select(x => new SelectListItem
                 {
                     Text = x.Name,
@@ -147,14 +154,14 @@ namespace ShopHub.MVC.Controllers
         [HttpDelete]
         public IActionResult Delete(int? id)
         {
-            var productIndb = _db.Products.FirstOrDefault(x => x.Id == id);
+            var productIndb = _unitOfWork.ProductRepo.Get(x => x.Id == id);
 
             if (productIndb == null)
             {
                 return Json(new { success = false, message = "Error while Deleting" });
             }
 
-            _db.Products.Remove(productIndb);
+            _unitOfWork.ProductRepo.Remove(productIndb);
 
             var oldimg = Path.Combine(_webHostEnvironment.WebRootPath, productIndb.Img.TrimStart('\\'));
 
@@ -163,7 +170,7 @@ namespace ShopHub.MVC.Controllers
                 System.IO.File.Delete(oldimg);
             }
 
-            _db.SaveChanges();
+            _unitOfWork.Save();
 
             return Json(new { success = true, message = "file has been Deleted" });
         }

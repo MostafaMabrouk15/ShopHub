@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Shop.DAL.Models;
 
 namespace Shop.DAL.DB
 {
-    public class ShopDbContext : DbContext
+    // AppDbContext : IdentityDb : DbContext  
+
+    public class ShopDbContext : IdentityDbContext<ApplicationUser>
     {
         public ShopDbContext(DbContextOptions<ShopDbContext> options) : base(options)
         {
