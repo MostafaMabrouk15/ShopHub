@@ -23,7 +23,13 @@ namespace ShopHub
             //DI
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             //Identity
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>() //UserManager,RoleManager
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(option =>
+            {
+                option.Password.RequireUppercase = false;
+                option.Password.RequireDigit = false;
+                option.Password.RequireNonAlphanumeric = false;
+                option.Password.RequiredLength = 4;
+            }) //UserManager,RoleManager
                 .AddEntityFrameworkStores<ShopDbContext>();
 
             var app = builder.Build();

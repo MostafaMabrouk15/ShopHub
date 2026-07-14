@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Shop.BAL.ModelVM;
 using Shop.DAL.Models;
+using System.Security.Claims;
 
 namespace ShopHub.MVC.Controllers
 {
@@ -49,9 +50,25 @@ namespace ShopHub.MVC.Controllers
                 IdentityResult result = await _userManager.CreateAsync(user, registerVM.Password);
                 if (result.Succeeded)
                 {
-                    //cookie => by Signin Manager
-                    await _signInManager.SignInAsync(user, isPersistent: false); //=> Sesion cookie 
-                    return RedirectToAction("Index", "Home");
+                    //assign role
+                    IdentityResult RoleResult = await _userManager.AddToRoleAsync(user, "customer");
+
+                    if (RoleResult.Succeeded)
+                    {
+
+                        //cookie => by Signin Manager
+                        await _signInManager.SignInAsync(user, isPersistent: false); //=> Sesion cookie 
+                        return RedirectToAction("Index", "Home");
+
+                    }
+                    else
+                    {
+                        foreach (var item in RoleResult.Errors)
+                        {
+                            ModelState.AddModelError("", item.Description);
+                        }
+
+                    }
                 }
 
 
@@ -98,8 +115,12 @@ namespace ShopHub.MVC.Controllers
                     var Found = await _userManager.CheckPasswordAsync(AppUser, loginVM.Password);
                     if (Found)
                     {
-                        //Cookie
-                        await _signInManager.SignInAsync(AppUser, loginVM.RememberMe);
+
+                        List<Claim> claims = new List<Claim>();
+                        claims.Add(new Claim("UserAddress", AppUser.Address));
+
+                        //Cookie  + Extra Claims
+                        await _signInManager.SignInWithClaimsAsync(AppUser, loginVM.RememberMe, claims);
                         //Auth
                         return RedirectToAction("Index", "Home");
                     }

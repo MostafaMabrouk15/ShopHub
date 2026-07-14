@@ -168,7 +168,7 @@
 								<a class="nav-link nav-link-box">
 									Wellcome @(User.Identity.Name)
 								</a>
-								
+
 							</li>
 
 							<li class="nav-item">
@@ -185,6 +185,17 @@
 								</a>
 							</li>
 
+							@if (User.IsInRole("admin"))
+							{
+								<li class="nav-item">
+									<a class="nav-link nav-link-box"
+									   asp-controller="Role" asp-action="AddRole">
+										Add Role
+									</a>
+								</li>
+
+
+							}
 
 
 							<li class="nav-item">
@@ -196,22 +207,22 @@
 						}
 						else
 						{
+							<li class="nav-item">
+								<a class="nav-link nav-link-box"
+								   asp-controller="Account" asp-action="Register">
+									Sign up
+								</a>
+							</li>
 
+							<li class="nav-item">
+								<a class="nav-link nav-link-box"
+								   asp-controller="Account" asp-action="Login">
+									Sign in
+								</a>
+							</li>
 						}
 
-						<li class="nav-item">
-							<a class="nav-link nav-link-box"
-							   asp-controller="Account" asp-action="Register">
-								Sign up
-							</a>
-						</li>
 
-						<li class="nav-item">
-							<a class="nav-link nav-link-box"
-							   asp-controller="Account" asp-action="Login">
-								Sign in
-							</a>
-						</li>
 
 
 
