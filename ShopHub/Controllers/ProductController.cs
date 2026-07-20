@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Shop.BAL.ModelVM;
-using Shop.DAL.DB;
 using Shop.DAL.Models;
 using Shop.DAL.Repository.Abstraction;
 
@@ -12,20 +10,18 @@ namespace ShopHub.MVC.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ShopDbContext _db;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(IUnitOfWork unitOfWork, ShopDbContext db, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
-            _db = db;
             _webHostEnvironment = webHostEnvironment;
         }
 
         [Authorize]
         public IActionResult Index()
         {
-            var productList = _db.Products.Include(p => p.Category).ToList();
+            var productList = _unitOfWork.ProductRepo.GetAll("Category");
 
             return View(productList);
         }
@@ -33,8 +29,7 @@ namespace ShopHub.MVC.Controllers
         [HttpGet]
         public IActionResult GetData()
         {
-            var products = _db.Products
-                .Include(x => x.Category)
+            var products = _unitOfWork.ProductRepo.GetAll("Category")
                 .Select(x => new
                 {
                     id = x.Id,
@@ -54,7 +49,7 @@ namespace ShopHub.MVC.Controllers
             ProductVM productVM = new ProductVM()
             {
                 Product = new Product(),
-                CategoryList = _db.Categories.Select(x => new SelectListItem
+                CategoryList = _unitOfWork.CategoryRepo.GetAll().Select(x => new SelectListItem
                 {
                     Text = x.Name,
                     Value = x.Id.ToString()
@@ -82,8 +77,8 @@ namespace ShopHub.MVC.Controllers
                     productVM.Product.Img = @"Images\Products\" + filename + ext;
                 }
 
-                _db.Products.Add(productVM.Product);
-                _db.SaveChanges();
+                _unitOfWork.ProductRepo.Add(productVM.Product);
+                _unitOfWork.Save();
                 TempData["Create"] = "Item has Created Successfully";
                 return RedirectToAction("Index");
             }
@@ -100,7 +95,7 @@ namespace ShopHub.MVC.Controllers
             ProductVM productVM = new ProductVM()
             {
                 Product = _unitOfWork.ProductRepo.Get(x => x.Id == id),
-                CategoryList = _db.Categories.Select(x => new SelectListItem
+                CategoryList = _unitOfWork.CategoryRepo.GetAll().Select(x => new SelectListItem
                 {
                     Text = x.Name,
                     Value = x.Id.ToString()
@@ -141,8 +136,8 @@ namespace ShopHub.MVC.Controllers
                     productVM.Product.Img = @"Images\Products\" + filename + ext;
                 }
 
-                _db.Products.Update(productVM.Product);
-                _db.SaveChanges();
+                _unitOfWork.ProductRepo.Edite(productVM.Product);
+                _unitOfWork.Save();
 
                 TempData["Update"] = "Data has Updated Successfully";
                 return RedirectToAction("Index");

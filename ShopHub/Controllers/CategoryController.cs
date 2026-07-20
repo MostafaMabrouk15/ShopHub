@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Shop.DAL.DB;
 using Shop.DAL.Models;
 using Shop.DAL.Repository.Abstraction;
 
@@ -7,12 +6,10 @@ namespace ShopHub.MVC.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ShopDbContext _db;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ShopDbContext db, IUnitOfWork unitOfWork)
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _db = db;
             _unitOfWork = unitOfWork;
         }
 
@@ -50,7 +47,6 @@ namespace ShopHub.MVC.Controllers
             {
                 NotFound();
             }
-            //var categoryIndb = _db.Categories.Find(id);
             var categoryIndb = _unitOfWork.CategoryRepo.Get(c => c.Id == id);
 
             return View(categoryIndb);
@@ -78,7 +74,7 @@ namespace ShopHub.MVC.Controllers
             {
                 NotFound();
             }
-            var categoryIndb = _db.Categories.Where(x => x.Id == id).FirstOrDefault();
+            var categoryIndb = _unitOfWork.CategoryRepo.Get(c => c.Id == id);
 
             return View(categoryIndb);
         }
@@ -86,7 +82,7 @@ namespace ShopHub.MVC.Controllers
         [HttpPost]
         public IActionResult DeleteCategory(int? id)
         {
-            var categoryIndb = _db.Categories.FirstOrDefault(x => x.Id == id);
+            var categoryIndb = _unitOfWork.CategoryRepo.Get(x => x.Id == id);
             if (categoryIndb == null)
             {
                 NotFound();

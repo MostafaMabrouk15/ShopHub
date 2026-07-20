@@ -1,4 +1,5 @@
-﻿using Shop.DAL.DB;
+﻿using Microsoft.EntityFrameworkCore;
+using Shop.DAL.DB;
 using Shop.DAL.Repository.Abstraction;
 using System.Linq.Expressions;
 
@@ -21,14 +22,40 @@ namespace Shop.DAL.Repository.Impelementation
             _db.Set<T>().Add(item);
         }
 
-        public T Get(Expression<Func<T, bool>> filter)
+        public T Get(Expression<Func<T, bool>> filter, string? IncludeProps = null)
         {
-            return _db.Set<T>().Where(filter).FirstOrDefault();
+            IQueryable<T> query = _db.Set<T>().Where(filter);
+
+            if (!string.IsNullOrEmpty(IncludeProps))
+            {
+                foreach (var prop in IncludeProps.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(prop);
+
+                }
+
+            }
+
+            return query.FirstOrDefault();
         }
 
-        public IEnumerable<T> GetAll()
+        public IEnumerable<T> GetAll(string? IncludeProps = null)
         {
-            return _db.Set<T>().ToList();
+            IQueryable<T> query = _db.Set<T>();
+
+
+            if (!string.IsNullOrEmpty(IncludeProps))
+            {
+                foreach (var prop in IncludeProps.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(prop);
+
+                }
+
+            }
+
+
+            return query.ToList();
 
         }
 
